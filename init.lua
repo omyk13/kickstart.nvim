@@ -110,7 +110,7 @@ do
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  -- vim.o.relativenumber = true
+  vim.o.relativenumber = true
 
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
@@ -393,7 +393,7 @@ do
   -- Load the colorscheme here.
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  vim.cmd.colorscheme 'tokyonight-night'
+  vim.cmd.colorscheme 'default'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -692,6 +692,20 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
+    roslyn_ls = {},
+    eslint = {},
+    vue_ls = {},
+    ts_ls = {},
+    html = {},
+    cssls = {},
+    tailwindcss = {},
+    jsonls = {},
+    yamlls = {},
+    docker_compose_language_service = {},
+    bashls = {},
+    sqls = {},
+    postgres_lsp = {},
+    marksman = {},
     -- clangd = {},
     -- gopls = {},
     -- pyright = {},
@@ -765,6 +779,7 @@ do
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     -- You can add other tools here that you want Mason to install
+    'netcoredbg',
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -787,7 +802,17 @@ do
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
       local enabled_filetypes = {
-        -- lua = true,
+        lua = true,
+        cs = true,
+        vue = true,
+        html = true,
+        css = true,
+        json = true,
+        jsonc = true,
+        yaml = true,
+        markdown = true,
+        sh = true,
+        sql = true,
         -- python = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
@@ -806,7 +831,18 @@ do
       -- python = { "isort", "black" },
       --
       -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      javascript = { 'prettierd', 'prettier', stop_after_first = true },
+      lua = { 'stylua' },
+      cs = { 'csharpier' },
+      vue = { 'prettierd' },
+      html = { 'prettierd' },
+      css = { 'prettierd' },
+      json = { 'prettierd' },
+      jsonc = { 'prettierd' },
+      yaml = { 'prettierd' },
+      markdown = { 'prettierd' },
+      sh = { 'shfmt' },
+      sql = { 'slqfluff' },
     },
   }
 
@@ -972,11 +1008,11 @@ do
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.autopairs'
   -- require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
@@ -986,3 +1022,54 @@ end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+-- ============================================================
+-- SECTION 11: DEBUGGING
+-- nvim-dap setup
+-- ============================================================
+do
+  vim.pack.add {
+    gh 'mfussenegger/nvim-dap',
+    gh 'rcarriga/nvim-dap-ui',
+    gh 'theHamsta/nvim-dap-virtual-text',
+    gh 'nvim-neotest/nvim-nio',
+  }
+
+  local dap = require 'dap'
+  local dapui = require 'dapui'
+
+  dapui.setup()
+
+  dap.adapters.coreclr = {
+    type = 'executable',
+    command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg',
+    args = { '--interpreter=vscode' },
+  }
+  require('nvim-dap-virtual-text').setup()
+
+  dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end
+
+  dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end
+
+  dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
+
+  dap.configurations.cs = {
+    {
+      type = 'coreclr',
+      name = 'Launch .NET Core',
+      request = 'attach',
+
+      program = function() return vim.fn.input('Path to dll: ', vim.fn.getcwd() .. '/bin/Debug/net10.0/', 'file') end,
+
+      cwd = '${workspaceFolder}',
+      console = 'integratedTerminal',
+    },
+  }
+
+  vim.keymap.set('n', '<F5>', dap.continue, { desc = 'DAP: Start/Continue' })
+  vim.keymap.set('n', '<F10>', dap.step_over, { desc = 'DAP: Step Over' })
+  vim.keymap.set('n', '<F11>', dap.step_into, { desc = 'DAP: Step Into' })
+  vim.keymap.set('n', '<F12>', dap.step_out, { desc = 'DAP: Step Out' })
+
+  vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, { desc = 'DAP: Toggle Breakpoint' })
+  vim.keymap.set('n', '<leader>du', dapui.toggle, { desc = 'DAP: Toggle UI' })
+end
