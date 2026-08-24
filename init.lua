@@ -125,7 +125,7 @@ do
   vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
   -- Enable break indent
-  vim.o.breakindent = true
+  vim.o.breakindent = false
 
   -- Enable undo/redo changes even after closing and reopening a file
   vim.o.undofile = true
@@ -194,7 +194,7 @@ do
     underline = { severity = { min = vim.diagnostic.severity.WARN } },
 
     -- Can switch between these as you prefer
-    virtual_text = true, -- Text shows up at the end of the line
+    virtual_text = false, -- Text shows up at the end of the line
     virtual_lines = false, -- Text shows up underneath the line, with virtual lines
 
     -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
@@ -1008,11 +1008,12 @@ do
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug'
-  require 'kickstart.plugins.indent_line'
-  require 'kickstart.plugins.lint'
+  -- require 'kickstart.plugins.indent_line'
+  -- require 'kickstart.plugins.lint'
   require 'kickstart.plugins.autopairs'
   -- require 'kickstart.plugins.neo-tree'
   require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  -- require 'kickstart.plugins.render-markdown'
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
@@ -1044,6 +1045,7 @@ do
     command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg',
     args = { '--interpreter=vscode' },
   }
+
   require('nvim-dap-virtual-text').setup()
 
   dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end
