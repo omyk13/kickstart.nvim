@@ -447,6 +447,29 @@ do
 
   -- ... and there is more!
   --  Check out: https://github.com/nvim-mini/mini.nvim
+  -- [[ ToggleTerm ]]
+  vim.pack.add { gh 'akinsho/toggleterm.nvim' }
+
+  require('toggleterm').setup {
+    open_mapping = [[<c-\>]],
+    persist_mode = true,
+  }
+
+  local Terminal = require('toggleterm.terminal').Terminal
+
+  local terminals = {
+    Terminal:new { count = 1, direction = 'vertical' },
+    Terminal:new { count = 2, direction = 'vertical' },
+    Terminal:new { count = 3, direction = 'horizontal' },
+    Terminal:new { count = 4, direction = 'horizontal' },
+  }
+
+  -- ToggleTerm: numbered terminal access
+
+  vim.keymap.set('n', '<leader>t1', function() terminals[1]:toggle() end, { desc = 'Terminal 1 (right)' })
+  vim.keymap.set('n', '<leader>t2', function() terminals[2]:toggle() end, { desc = 'Terminal 2 (right)' })
+  vim.keymap.set('n', '<leader>t3', function() terminals[3]:toggle() end, { desc = 'Terminal 3 (bottom)' })
+  vim.keymap.set('n', '<leader>t4', function() terminals[4]:toggle() end, { desc = 'Terminal 4 (bottom)' })
 end
 
 -- ============================================================
